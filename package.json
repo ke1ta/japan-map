@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^6.0.5"
+    "vite": "^5.0.8"
   },
   "dependencies": {
-    "maplibre-gl": "^5.0.1",
+    "maplibre-gl": "^3.6.2",
     "topojson-client": "^3.1.0"
   }
 }
