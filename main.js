@@ -9,14 +9,14 @@ const map = new maplibregl.Map({
     sources: {},
     layers: []
   },
-  center: [139.7024, 35.6598], // 中心座標
-  zoom: 16, // ズームレベル
+  center: [139.7024, 35.6598],
+  zoom: 16,
 });
 
 // 地図の読み込み完了後に日本地図を追加
 map.on('load', async () => {
   // GeoJSONデータを取得
-  const response = await fetch('N03-21_210101_designated_city.json');
+  const response = await fetch('N03-21_210101.json');
   const geojson = await response.json();
   
   // 地図にレイヤーを追加
@@ -59,59 +59,18 @@ map.on('load', async () => {
         "properties": {
           "N03_007": "14101" // 横浜市中区
         }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "14131" // 川崎市川崎区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "14151" // 相模原市中央区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "15101" // 新潟市中央区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "22101" // 静岡市葵区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "22131" // 浜松市中区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "23101" // 名古屋市中区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "26101" // 京都市中京区
-        }
-      },
+      }
+    ]
+  };
+
+  // 別の地域を定義
+  const fugaArea = {
+    "type": "FeatureCollection",
+    "features": [
       {
         "type": "Feature",
         "properties": {
           "N03_007": "27101" // 大阪市北区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "27141" // 堺市堺区
         }
       },
       {
@@ -123,31 +82,7 @@ map.on('load', async () => {
       {
         "type": "Feature",
         "properties": {
-          "N03_007": "33101" // 岡山市北区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "34101" // 広島市中区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "40101" // 北九州市小倉北区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
           "N03_007": "40131" // 福岡市中央区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "43101" // 熊本市中央区
         }
       },
       {
@@ -159,67 +94,89 @@ map.on('load', async () => {
       {
         "type": "Feature",
         "properties": {
-          "N03_007": "13103" // 東京都港区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "13104" // 東京都新宿区
-        }
-      },
-      {
-        "type": "Feature",
-        "properties": {
-          "N03_007": "13113" // 東京都渋谷区
+          "N03_007": "23101" // 名古屋市中区
         }
       }
     ]
   };
 
-  map.addLayer({
-    id: 'japan-fill',
-    type: 'fill',
-    source: 'japan',
-    paint: {
-      'fill-color': [
-        'case',
-        [
-          'in',
-          ['get', 'N03_007'],
-          ['literal', hogeArea.features.map(f => f.properties.N03_007)]
-        ],
-        'rgba(0, 191, 255, 0.8)', // 濃い水色
-        '#CCCCCC' // 薄い灰色
-      ],
-      'fill-opacity': 0.8,
-      'fill-outline-color': '#000000' // 境界線
-    }
-  });
+  // エリアの表示状態を管理
+  let showHogeArea = true;
+  let showFugaArea = true;
 
-  // 市区町村をクリックした時の処理
-  map.on('click', 'japan-fill', (e) => {
-    const feature = e.features[0];
-    const areaName = feature.properties.N03_004 || 
-                     feature.properties.N03_003 || 
-                     feature.properties.N03_002;
-    
-    // クリックしたエリアの色を変更
+  // 色分け処理を更新する関数
+  const updateColors = () => {
     map.setPaintProperty('japan-fill', 'fill-color', [
       'case',
-      ['==', ['get', 'N03_007'], feature.properties.N03_007],
-      '#FF0000',
+      ['==', ['get', 'N03_007'], selectedAreaCode],
+      '#FF0000', // クリックされたエリア
       [
         'case',
         [
           'in',
           ['get', 'N03_007'],
-          ['literal', hogeArea.features.map(f => f.properties.N03_007)]
+          ['literal', showHogeArea ? hogeArea.features.map(f => f.properties.N03_007) : []]
         ],
-        'rgba(0, 191, 255, 0.8)',
-        '#CCCCCC'
+        'rgba(0, 191, 255, 0.8)', // hogeArea
+        [
+          'case',
+          [
+            'in',
+            ['get', 'N03_007'],
+            ['literal', showFugaArea ? fugaArea.features.map(f => f.properties.N03_007) : []]
+          ],
+          'rgba(255, 165, 0, 0.8)', // fugaArea（オレンジ色）
+          '#CCCCCC' // その他
+        ]
       ]
     ]);
+  };
+
+  // レイヤーを追加
+  map.addLayer({
+    id: 'japan-fill',
+    type: 'fill',
+    source: 'japan',
+    paint: {
+      'fill-color': '#CCCCCC',
+      'fill-opacity': 0.8,
+      'fill-outline-color': '#000000'
+    }
+  });
+
+  // 初期表示
+  let selectedAreaCode = null;
+  updateColors();
+
+  // チェックボックスのイベントリスナー
+  const hogeCheckbox = document.getElementById('hogeArea');
+  const fugaCheckbox = document.getElementById('fugaArea');
+
+  if (hogeCheckbox && fugaCheckbox) {
+    hogeCheckbox.addEventListener('change', (e) => {
+      console.log('hogeArea changed:', e.target.checked);
+      showHogeArea = e.target.checked;
+      updateColors();
+    });
+
+    fugaCheckbox.addEventListener('change', (e) => {
+      console.log('fugaArea changed:', e.target.checked);
+      showFugaArea = e.target.checked;
+      updateColors();
+    });
+  } else {
+    console.error('Checkboxes not found');
+  }
+
+  // 市区町村をクリックした時の処理
+  map.on('click', 'japan-fill', (e) => {
+    const feature = e.features[0];
+    selectedAreaCode = feature.properties.N03_007;
+    const areaName = feature.properties.N03_004 || 
+                     feature.properties.N03_003 || 
+                     feature.properties.N03_002;
+    
+    updateColors();
     
     // クリックしたエリア名を表示
     new maplibregl.Popup({
