@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 # GitHubトークンに必要な権限を設定
 permissions:
