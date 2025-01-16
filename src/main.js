@@ -11,7 +11,7 @@ const map = new maplibregl.Map({
     layers: []
   },
   center: [139.7024, 35.6598],
-  zoom: 16,
+  zoom: 8,
 });
 
 // 地図の読み込み完了後に日本地図を追加
@@ -116,7 +116,7 @@ map.on('load', async () => {
         [
           'in',
           ['get', 'N03_007'],
-          ['literal', showHogeArea ? hogeArea.features.map(f => f.properties.N03_007) : []]
+          ['literal', showHogeArea ? hogeArea.features.map(f => f.properties.N03_007) : null]
         ],
         'rgba(0, 191, 255, 0.8)', // hogeArea
         [
@@ -124,7 +124,7 @@ map.on('load', async () => {
           [
             'in',
             ['get', 'N03_007'],
-            ['literal', showFugaArea ? fugaArea.features.map(f => f.properties.N03_007) : []]
+            ['literal', showFugaArea ? fugaArea.features.map(f => f.properties.N03_007) : null]
           ],
           'rgba(255, 165, 0, 0.8)', // fugaArea（オレンジ色）
           '#CCCCCC' // その他
