@@ -1,14 +1,9 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  root: './src',
   base: '/japan-map/',
   build: {
-    outDir: 'docs',
-    assetsDir: 'assets',
-    rollupOptions: {
-      input: {
-        main: 'index.html'
-      }
-    }
+    outDir: '../docs',
   }
 })
